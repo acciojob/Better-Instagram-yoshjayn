@@ -18,7 +18,7 @@
       <div draggable="true" class="image" >Image 5</div>
       <div draggable="true" class="image" >Image 6</div>
     </div>
-	  <script>
+	  <!-- <script>
 		  document.addEventListener('DOMContentLoaded', function() {
   // Get all the image divs
   const images = document.querySelectorAll('.image');
@@ -80,6 +80,88 @@
       const draggedText = draggedItem.textContent;
       draggedItem.textContent = this.textContent;
       this.textContent = draggedText;
+    }
+    
+    return false;
+  }
+
+  function dragEnd() {
+    this.classList.remove('selected');
+    images.forEach(image => {
+      image.classList.remove('over');
+    });
+  }
+});
+	  
+	  </script> -->
+	  <script>
+		  document.addEventListener('DOMContentLoaded', function() {
+  // Get all the image divs
+  const images = document.querySelectorAll('.image');
+  const parent = document.getElementById('parent');
+  
+  // Add ids to the divs as required by tests (drag1, drag2, etc.)
+  images.forEach((div, index) => {
+    div.id = `drag${index + 1}`;
+  });
+
+  // Add drag event listeners to each image
+  images.forEach(image => {
+    image.addEventListener('dragstart', dragStart);
+    image.addEventListener('dragover', dragOver);
+    image.addEventListener('dragenter', dragEnter);
+    image.addEventListener('dragleave', dragLeave);
+    image.addEventListener('drop', drop);
+    image.addEventListener('dragend', dragEnd);
+  });
+
+  let draggedItem = null;
+
+  function dragStart(e) {
+    draggedItem = this;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+    // For Firefox
+    e.dataTransfer.setData('text/plain', this.id);
+    this.classList.add('selected');
+  }
+
+  function dragOver(e) {
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+  }
+
+  function dragEnter(e) {
+    e.preventDefault();
+    this.classList.add('over');
+  }
+
+  function dragLeave() {
+    this.classList.remove('over');
+  }
+
+  function drop(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+    
+    // Don't do anything if we're dropping on the same item we're dragging
+    if (draggedItem !== this) {
+      // Swap the nodes in the DOM
+      const draggedIndex = Array.from(images).indexOf(draggedItem);
+      const dropIndex = Array.from(images).indexOf(this);
+      
+      // Swap positions in the parent node
+      if (draggedIndex < dropIndex) {
+        parent.insertBefore(this, draggedItem);
+        parent.insertBefore(draggedItem, images[dropIndex]);
+      } else {
+        parent.insertBefore(draggedItem, this);
+        parent.insertBefore(this, images[draggedIndex]);
+      }
     }
     
     return false;
