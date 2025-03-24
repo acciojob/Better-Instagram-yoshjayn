@@ -18,5 +18,80 @@
       <div draggable="true" class="image" >Image 5</div>
       <div draggable="true" class="image" >Image 6</div>
     </div>
+	  <script>
+		  document.addEventListener('DOMContentLoaded', function() {
+  // Get all the image divs
+  const images = document.querySelectorAll('.image');
+  const parent = document.getElementById('parent');
+  
+  // Add ids to the divs as required
+  images.forEach((div, index) => {
+    div.id = `div${index + 1}`;
+  });
+
+  // Add drag event listeners to each image
+  images.forEach(image => {
+    image.addEventListener('dragstart', dragStart);
+    image.addEventListener('dragover', dragOver);
+    image.addEventListener('dragenter', dragEnter);
+    image.addEventListener('dragleave', dragLeave);
+    image.addEventListener('drop', drop);
+    image.addEventListener('dragend', dragEnd);
+  });
+
+  let draggedItem = null;
+
+  function dragStart(e) {
+    draggedItem = this;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+    this.classList.add('selected');
+  }
+
+  function dragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+  }
+
+  function dragEnter(e) {
+    e.preventDefault();
+    this.classList.add('over');
+  }
+
+  function dragLeave() {
+    this.classList.remove('over');
+  }
+
+  function drop(e) {
+    e.preventDefault();
+    this.classList.remove('over');
+    
+    // Don't do anything if we're dropping on the same item we're dragging
+    if (draggedItem !== this) {
+      // Swap background images
+      const draggedBg = window.getComputedStyle(draggedItem).backgroundImage;
+      const targetBg = window.getComputedStyle(this).backgroundImage;
+      
+      draggedItem.style.backgroundImage = targetBg;
+      this.style.backgroundImage = draggedBg;
+      
+      // Swap text content
+      const draggedText = draggedItem.textContent;
+      draggedItem.textContent = this.textContent;
+      this.textContent = draggedText;
+    }
+    
+    return false;
+  }
+
+  function dragEnd() {
+    this.classList.remove('selected');
+    images.forEach(image => {
+      image.classList.remove('over');
+    });
+  }
+});
+	  </script>
   </body>
 </html>
