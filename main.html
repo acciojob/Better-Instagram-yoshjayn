@@ -25,13 +25,18 @@
             user-select: none;
         }
 
-        /* Individual image backgrounds - support both ID formats */
-        #drag1, #div1 { background-image: url("https://picsum.photos/id/237/200/300"); }
-        #drag2, #div2 { background-image: url("https://picsum.photos/seed/picsum/200/300"); }
-        #drag3, #div3 { background-image: url("https://picsum.photos/200/300?grayscale"); }
-        #drag4, #div4 { background-image: url("https://picsum.photos/200/300/"); }
-        #drag5, #div5 { background-image: url("https://picsum.photos/200/300.jpg"); }
-        #drag6, #div6 { background-image: url("https://picsum.photos/id/102/200/300"); }
+        /* Individual image backgrounds using div IDs */
+        #div1 { background-image: url("https://picsum.photos/id/237/200/300"); }
+        #div2 { background-image: url("https://picsum.photos/seed/picsum/200/300"); }
+        #div3 { background-image: url("https://picsum.photos/200/300?grayscale"); }
+        #div4 { background-image: url("https://picsum.photos/200/300/"); }
+        #div5 { background-image: url("https://picsum.photos/200/300.jpg"); }
+        #div6 { background-image: url("https://picsum.photos/id/102/200/300"); }
+
+        /* Temporary drag ID styles */
+        [id^="drag"] {
+            /* Inherit all styles from .image */
+        }
 
         .flex {
             display: flex;
@@ -55,13 +60,13 @@
 <body>
     <h1>Arrange Images by drag and drop</h1>
     <div class="flex" id="parent">
-        <!-- Elements with BOTH id formats -->
-        <div draggable="true" class="image" id="div1" id="drag1">Image 1</div>
-        <div draggable="true" class="image" id="div2" id="drag2">Image 2</div>
-        <div draggable="true" class="image" id="div3" id="drag3">Image 3</div>
-        <div draggable="true" class="image" id="div4" id="drag4">Image 4</div>
-        <div draggable="true" class="image" id="div5" id="drag5">Image 5</div>
-        <div draggable="true" class="image" id="div6" id="drag6">Image 6</div>
+        <!-- Elements with permanent divX IDs -->
+        <div draggable="true" class="image" id="div1">Image 1</div>
+        <div draggable="true" class="image" id="div2">Image 2</div>
+        <div draggable="true" class="image" id="div3">Image 3</div>
+        <div draggable="true" class="image" id="div4">Image 4</div>
+        <div draggable="true" class="image" id="div5">Image 5</div>
+        <div draggable="true" class="image" id="div6">Image 6</div>
     </div>
 
     <script>
@@ -80,15 +85,18 @@
             });
 
             let draggedItem = null;
+            let originalId = null;
 
             function handleDragStart(e) {
                 draggedItem = this;
+                originalId = this.id;
+                
+                // Add temporary drag ID
+                const dragNum = originalId.replace('div', '');
+                this.id = `drag${dragNum}`;
+                
                 e.dataTransfer.effectAllowed = 'move';
-                // Store both IDs in data transfer
-                e.dataTransfer.setData('text/plain', JSON.stringify({
-                    divId: this.id.startsWith('div') ? this.id : null,
-                    dragId: this.id.startsWith('drag') ? this.id : null
-                }));
+                e.dataTransfer.setData('text/plain', originalId);
                 this.classList.add('dragging');
             }
 
@@ -128,26 +136,18 @@
                     // Remove markers
                     parent.removeChild(draggedMarker);
                     parent.removeChild(targetMarker);
-                    
-                    // Ensure both IDs are preserved
-                    if (!draggedItem.id.includes('div')) {
-                        draggedItem.id = 'div' + draggedItem.id.replace('drag', '');
-                    }
-                    if (!this.id.includes('div')) {
-                        this.id = 'div' + this.id.replace('drag', '');
-                    }
-                    if (!draggedItem.id.includes('drag')) {
-                        draggedItem.id = 'drag' + draggedItem.id.replace('div', '');
-                    }
-                    if (!this.id.includes('drag')) {
-                        this.id = 'drag' + this.id.replace('div', '');
-                    }
                 }
                 
                 this.classList.remove('drop-target');
             }
 
             function handleDragEnd() {
+                // Restore original ID
+                if (originalId) {
+                    draggedItem.id = originalId;
+                    originalId = null;
+                }
+                
                 this.classList.remove('dragging');
                 images.forEach(img => img.classList.remove('drop-target'));
             }
